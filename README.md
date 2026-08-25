@@ -1,7 +1,7 @@
 # Met Office Warnings
 
-[![Validate](https://github.com/Proffalken/metoffice-warnings/actions/workflows/validate.yml/badge.svg)](https://github.com/Proffalken/metoffice-warnings/actions/workflows/validate.yml)
-[![Test](https://github.com/Proffalken/metoffice-warnings/actions/workflows/test.yml/badge.svg)](https://github.com/Proffalken/metoffice-warnings/actions/workflows/test.yml)
+[![Validate](https://github.com/Proffalken/ha-metoffice-weather-warnings/actions/workflows/validate.yml/badge.svg)](https://github.com/Proffalken/ha-metoffice-weather-warnings/actions/workflows/validate.yml)
+[![Test](https://github.com/Proffalken/ha-metoffice-weather-warnings/actions/workflows/test.yml/badge.svg)](https://github.com/Proffalken/ha-metoffice-weather-warnings/actions/workflows/test.yml)
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/integration)
 
 A Home Assistant custom integration that surfaces **UK Met Office severe weather
@@ -30,7 +30,7 @@ which appear stale:
   docs, and `warningVersion` is a string (e.g. `"1.0"`), not a number.
 
 If something still doesn't parse as expected, please
-[open an issue](https://github.com/Proffalken/metoffice-warnings/issues) with a
+[open an issue](https://github.com/Proffalken/ha-metoffice-weather-warnings/issues) with a
 redacted sample response.
 
 ## What you get
@@ -52,14 +52,15 @@ Met Office DataHub weather-forecast API and requires a separate signup:
 
 1. Fill in the request form linked from the
    [NSWWS Public API docs](https://metoffice.github.io/nswws-public-api/).
-2. Once approved, you'll receive an `x-api-key` and a personal API base URL.
+2. Once approved, you'll receive an API key (the base URL is the same fixed public
+   host for everyone — see the Status section above).
 
 ## Installation
 
 ### Via HACS (custom repository)
 
 1. HACS → the ⋮ menu → **Custom repositories**.
-2. Add `https://github.com/Proffalken/metoffice-warnings`, category **Integration**.
+2. Add `https://github.com/Proffalken/ha-metoffice-weather-warnings`, category **Integration**.
 3. Install **Met Office Warnings**, then restart Home Assistant.
 
 ### Manual
