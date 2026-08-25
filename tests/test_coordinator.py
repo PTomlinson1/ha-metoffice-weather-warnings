@@ -14,6 +14,7 @@ from custom_components.metoffice_warnings.const import AREA_ALL, WARNING_LEVEL_A
 from custom_components.metoffice_warnings.coordinator import (
     MetOfficeWarningsCoordinator,
     highest_level,
+    top_warning,
 )
 from custom_components.metoffice_warnings.models import warnings_from_geojson
 
@@ -78,3 +79,9 @@ def test_highest_level_orders_by_severity(issued_active) -> None:
     warnings = warnings_from_geojson(issued_active)
     assert highest_level(warnings) == WARNING_LEVEL_AMBER
     assert highest_level([]) == "none"
+
+
+def test_top_warning_returns_first_or_none(issued_active) -> None:
+    warnings = warnings_from_geojson(issued_active)
+    assert top_warning(warnings) is warnings[0]
+    assert top_warning([]) is None

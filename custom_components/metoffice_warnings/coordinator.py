@@ -31,6 +31,16 @@ def highest_level(warnings: list[Warning]) -> str:
     return max((w.level for w in warnings), key=lambda level: _SEVERITY_RANK[level])
 
 
+def top_warning(warnings: list[Warning]) -> Warning | None:
+    """Return the most prominent active warning, or None if there isn't one.
+
+    The API already sorts `/objects/issued` by severity (RED > AMBER > YELLOW),
+    then impact/likelihood, then chronologically - so the first entry in an
+    already-filtered list is the one worth surfacing on its own.
+    """
+    return warnings[0] if warnings else None
+
+
 def _matches_area(warning: Warning, areas: list[str]) -> bool:
     if AREA_ALL in areas:
         return True

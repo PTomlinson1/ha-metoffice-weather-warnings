@@ -40,15 +40,22 @@ it as a HACS custom repository — only default-store listing.
 
 ## What you get
 
-Each config entry (one NSWWS API key/area filter) creates one device with two
+Each config entry (one NSWWS API key/area filter) creates one device with six
 entities:
 
 - `sensor.<name>_warning_level` — the highest-severity active warning matching your
   area filter: `none` / `yellow` / `amber` / `red`. Attributes include the full list
-  of active warnings (headline, weather type, what to expect, valid from/to,
-  likelihood, impact, affected areas).
+  of active warnings (headline, weather type, what to expect, what to do, valid
+  from/to, likelihood, impact, affected areas) — use this one for templating.
 - `binary_sensor.<name>_warning_active` — on when any warning matches your filter, for
   simple automation triggers. Attributes summarise the most severe active warning.
+- `sensor.<name>_warning_headline` / `_warning_areas` / `_warning_valid_from` /
+  `_warning_valid_to` — the single most severe active warning's headline, affected
+  areas, and start/end time, each as its own plain entity. These exist so you can drop
+  the details straight onto a dashboard with an ordinary entity card, without writing
+  a template against `warning_level`'s attributes. They go to `unknown` when nothing's
+  active. The headline sensor also carries what-to-expect/what-to-do/further-details
+  as attributes, for the same "click through for more" experience as a weather app.
 
 ## Requirements
 
@@ -104,6 +111,13 @@ uv sync --dev
 uv run pytest -v
 uv run ruff check .
 ```
+
+### Releasing
+
+Bump `version` in `custom_components/metoffice_warnings/manifest.json` (keep
+`pyproject.toml`'s version in sync) and push to `main`. The `Release` workflow tags and
+publishes a matching GitHub Release automatically — that's what HACS shows as the
+installable version, so a version without a release just shows up as a commit hash.
 
 Tests run against fixtures modeled on real captured NSWWS responses
 (`tests/fixtures/`) — see the status note above for how they were validated.
