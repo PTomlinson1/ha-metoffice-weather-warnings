@@ -4,9 +4,9 @@
   "codeowners": ["@Proffalken"],
   "config_flow": true,
   "documentation": "https://github.com/Proffalken/ha-metoffice-weather-warnings",
-  "issue_tracker": "https://github.com/Proffalken/ha-metoffice-weather-warnings/issues",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/Proffalken/ha-metoffice-weather-warnings/issues",
   "requirements": [],
   "version": "0.2.0"
 }

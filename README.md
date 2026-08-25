@@ -33,6 +33,11 @@ If something still doesn't parse as expected, please
 [open an issue](https://github.com/Proffalken/ha-metoffice-weather-warnings/issues) with a
 redacted sample response.
 
+**Known gap:** HACS's brand-assets check currently fails because this integration hasn't
+been submitted to [home-assistant/brands](https://github.com/home-assistant/brands) yet
+(needs an icon/logo). That's expected for a new integration and doesn't block installing
+it as a HACS custom repository — only default-store listing.
+
 ## What you get
 
 Each config entry (one NSWWS API key/area filter) creates one device with two
