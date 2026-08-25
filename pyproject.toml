@@ -1,0 +1,31 @@
+[project]
+name = "metoffice-warnings"
+version = "0.2.0"
+description = "Home Assistant custom integration for UK Met Office severe weather warnings (NSWWS)"
+requires-python = ">=3.13"
+dependencies = []
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "pytest-homeassistant-custom-component>=0.13.0",
+    "syrupy>=4.7",
+    "ruff>=0.8",
+    "aioresponses>=0.7",
+]
+
+[tool.uv]
+package = false
+
+[tool.ruff]
+target-version = "py313"
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B", "SIM", "ASYNC"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+pythonpath = ["."]

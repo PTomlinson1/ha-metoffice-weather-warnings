@@ -1,0 +1,45 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to the Met Office NSWWS API",
+        "description": "Enter the API key Met Office sent you when they approved your National Severe Weather Warning Service (NSWWS) Public API request. The base URL is the same for everyone and is pre-filled - you only need to change it if Met Office tells you otherwise.",
+        "data": {
+          "api_key": "API key",
+          "base_url": "API base URL"
+        }
+      },
+      "areas": {
+        "title": "Choose which areas to monitor",
+        "description": "Warnings are currently active for the regions listed below. Leave \"Monitor all UK regions\" checked to track every warning nationwide, or untick it and pick specific regions.",
+        "data": {
+          "monitor_all": "Monitor all UK regions",
+          "areas": "Regions to monitor"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Met Office rejected the API key. Double-check it and try again.",
+      "cannot_connect": "Could not reach the Met Office NSWWS API.",
+      "unknown": "Unexpected error while validating your credentials."
+    },
+    "abort": {
+      "already_configured": "This API key is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Met Office Warnings options",
+        "data": {
+          "scan_interval_minutes": "Poll interval (minutes)",
+          "monitor_all": "Monitor all UK regions",
+          "areas": "Regions to monitor"
+        }
+      }
+    },
+    "error": {
+      "interval_too_short": "Poll interval must be at least 5 minutes."
+    }
+  }
+}

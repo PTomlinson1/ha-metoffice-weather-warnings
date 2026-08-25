@@ -1,0 +1,78 @@
+"""Data update coordinator for the Met Office Warnings integration."""
+
+from __future__ import annotations
+
+import logging
+from dataclasses import dataclass
+
+from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import ConfigEntryAuthFailed
+from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
+
+from .api import NSWWSApiClient, NSWWSAuthError, NSWWSConnectionError
+from .const import (
+    AREA_ALL,
+    DEFAULT_SCAN_INTERVAL,
+    DOMAIN,
+    WARNING_LEVEL_NONE,
+    WARNING_LEVELS,
+)
+from .models import Warning
+
+_LOGGER = logging.getLogger(__name__)
+
+_SEVERITY_RANK = {level: index for index, level in enumerate(WARNING_LEVELS)}
+
+
+def highest_level(warnings: list[Warning]) -> str:
+    """Return the most severe level present, or 'none' if the list is empty."""
+    if not warnings:
+        return WARNING_LEVEL_NONE
+    return max((w.level for w in warnings), key=lambda level: _SEVERITY_RANK[level])
+
+
+def _matches_area(warning: Warning, areas: list[str]) -> bool:
+    if AREA_ALL in areas:
+        return True
+    return any(region in areas for region in warning.region_names)
+
+
+@dataclass(frozen=True, slots=True)
+class WarningsData:
+    """Coordinator payload: the filtered warnings plus the derived overall level."""
+
+    warnings: list[Warning]
+    level: str
+
+
+class MetOfficeWarningsCoordinator(DataUpdateCoordinator[WarningsData]):
+    """Polls NSWWS `/issued` and filters the result to the configured areas."""
+
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        client: NSWWSApiClient,
+        areas: list[str],
+        update_interval=DEFAULT_SCAN_INTERVAL,
+    ) -> None:
+        super().__init__(
+            hass,
+            _LOGGER,
+            name=DOMAIN,
+            update_interval=update_interval,
+        )
+        self._client = client
+        self._areas = areas
+
+    async def _async_update_data(self) -> WarningsData:
+        try:
+            all_warnings = await self._client.async_get_active_warnings()
+        except NSWWSAuthError as err:
+            raise ConfigEntryAuthFailed(
+                "Met Office rejected the configured API key"
+            ) from err
+        except NSWWSConnectionError as err:
+            raise UpdateFailed(f"Error fetching NSWWS warnings: {err}") from err
+
+        matched = [w for w in all_warnings if _matches_area(w, self._areas)]
+        return WarningsData(warnings=matched, level=highest_level(matched))

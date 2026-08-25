@@ -1,0 +1,12 @@
+{
+  "domain": "metoffice_warnings",
+  "name": "Met Office Warnings",
+  "codeowners": ["@Proffalken"],
+  "config_flow": true,
+  "documentation": "https://github.com/Proffalken/metoffice-warnings",
+  "issue_tracker": "https://github.com/Proffalken/metoffice-warnings/issues",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "requirements": [],
+  "version": "0.2.0"
+}
