@@ -13,6 +13,10 @@ dev = [
     "syrupy>=4.7",
     "ruff>=0.8",
     "aioresponses>=0.7",
+    # aioresponses 0.7.9 doesn't pass aiohttp 3.14's new required
+    # ClientResponse(stream_writer=...) kwarg - fixed upstream but unreleased
+    # (pnuckowski/aioresponses#288). Drop this ceiling once that ships.
+    "aiohttp<3.14",
 ]
 
 [tool.uv]

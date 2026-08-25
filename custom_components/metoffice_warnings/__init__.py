@@ -44,7 +44,14 @@ async def async_setup_entry(
         areas=areas,
         update_interval=timedelta(minutes=scan_minutes),
     )
-    await coordinator.async_config_entry_first_refresh()
+    try:
+        await coordinator.async_config_entry_first_refresh()
+    except Exception:
+        # A failed first refresh still leaves the coordinator's internal
+        # retry timer scheduled. Since entry.runtime_data is never set on
+        # this path, nothing else can cancel it later - shut it down here.
+        await coordinator.async_shutdown()
+        raise
 
     entry.runtime_data = coordinator
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
