@@ -208,6 +208,79 @@ async def test_options_flow_interval_too_short(hass, issued_empty) -> None:
     assert options_result["errors"] == {"base": "interval_too_short"}
 
 
+async def test_reauth_flow_success(hass, issued_empty, mock_config_entry) -> None:
+    with aioresponses() as mocked:
+        register_nswws_feed_error(mocked, status=401)
+        assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    flows = hass.config_entries.flow.async_progress()
+    reauth_flows = [f for f in flows if f["context"]["source"] == "reauth"]
+    assert len(reauth_flows) == 1
+
+    with aioresponses() as mocked:
+        register_nswws(mocked, issued_empty)
+        result = await hass.config_entries.flow.async_configure(
+            reauth_flows[0]["flow_id"],
+            {CONF_API_KEY: "new-key"},
+        )
+        await hass.async_block_till_done()
+
+    assert result["type"] is FlowResultType.ABORT
+    assert result["reason"] == "reauth_successful"
+    assert mock_config_entry.data[CONF_API_KEY] == "new-key"
+
+
+async def test_reauth_flow_invalid_auth_shows_error(
+    hass, mock_config_entry
+) -> None:
+    with aioresponses() as mocked:
+        register_nswws_feed_error(mocked, status=401)
+        assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    reauth_flows = [
+        f
+        for f in hass.config_entries.flow.async_progress()
+        if f["context"]["source"] == "reauth"
+    ]
+
+    with aioresponses() as mocked:
+        register_nswws_feed_error(mocked, status=401)
+        result = await hass.config_entries.flow.async_configure(
+            reauth_flows[0]["flow_id"],
+            {CONF_API_KEY: "still-bad-key"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "invalid_auth"}
+
+
+async def test_reauth_flow_cannot_connect_shows_error(
+    hass, mock_config_entry
+) -> None:
+    with aioresponses() as mocked:
+        register_nswws_feed_error(mocked, status=401)
+        assert not await hass.config_entries.async_setup(mock_config_entry.entry_id)
+        await hass.async_block_till_done()
+
+    reauth_flows = [
+        f
+        for f in hass.config_entries.flow.async_progress()
+        if f["context"]["source"] == "reauth"
+    ]
+
+    with aioresponses() as mocked:
+        register_nswws_feed_error(mocked, status=500)
+        result = await hass.config_entries.flow.async_configure(
+            reauth_flows[0]["flow_id"],
+            {CONF_API_KEY: "new-key"},
+        )
+
+    assert result["type"] is FlowResultType.FORM
+    assert result["errors"] == {"base": "cannot_connect"}
+
+
 async def test_options_flow_fetch_failure_falls_back_to_empty_choices(
     hass, issued_empty
 ) -> None:

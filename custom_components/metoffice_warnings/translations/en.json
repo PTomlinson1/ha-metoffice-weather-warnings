@@ -16,6 +16,13 @@
           "monitor_all": "Monitor all UK regions",
           "areas": "Regions to monitor"
         }
+      },
+      "reauth_confirm": {
+        "title": "Reconnect to the Met Office NSWWS API",
+        "description": "Met Office rejected the current API key. Enter a new one to reconnect this integration.",
+        "data": {
+          "api_key": "API key"
+        }
       }
     },
     "error": {

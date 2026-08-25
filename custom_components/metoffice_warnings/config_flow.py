@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Mapping
 from typing import Any
 
 import voluptuous as vol
@@ -130,6 +131,43 @@ class MetOfficeWarningsConfigFlow(ConfigFlow, domain=DOMAIN):
 
         return self.async_show_form(
             step_id="areas", data_schema=_areas_schema(self._region_choices)
+        )
+
+    async def async_step_reauth(
+        self, entry_data: Mapping[str, Any]
+    ) -> Any:
+        """Handle a reauth triggered by ConfigEntryAuthFailed (e.g. a rejected key)."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> Any:
+        errors: dict[str, str] = {}
+        reauth_entry = self._get_reauth_entry()
+
+        if user_input is not None:
+            api_key = user_input[CONF_API_KEY]
+            try:
+                await _async_fetch_warnings(
+                    self.hass, api_key, reauth_entry.data[CONF_BASE_URL]
+                )
+            except NSWWSAuthError:
+                errors["base"] = "invalid_auth"
+            except NSWWSConnectionError:
+                errors["base"] = "cannot_connect"
+            except Exception:  # noqa: BLE001 - guard config flow against any bug
+                _LOGGER.exception("Unexpected error validating NSWWS credentials")
+                errors["base"] = "unknown"
+            else:
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data={**reauth_entry.data, CONF_API_KEY: api_key},
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema({vol.Required(CONF_API_KEY): str}),
+            errors=errors,
         )
 
     @staticmethod
