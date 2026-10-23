@@ -18,6 +18,7 @@ from .const import (
     CONF_AREAS,
     CONF_BASE_URL,
     CONF_MONITOR_ALL,
+    CONF_USE_HOME_LOCATION,
     CONF_SCAN_INTERVAL_MINUTES,
     DEFAULT_BASE_URL,
     DEFAULT_SCAN_INTERVAL_MINUTES,
@@ -198,6 +199,7 @@ class MetOfficeWarningsOptionsFlow(OptionsFlow):
                     data={
                         CONF_SCAN_INTERVAL_MINUTES: interval,
                         CONF_AREAS: areas,
+                        CONF_USE_HOME_LOCATION: user_input[CONF_USE_HOME_LOCATION],
                     }
                 )
 
@@ -211,7 +213,9 @@ class MetOfficeWarningsOptionsFlow(OptionsFlow):
         except (NSWWSAuthError, NSWWSConnectionError):
             region_choices = {}
 
-        current_areas = self.config_entry.data.get(CONF_AREAS, [AREA_ALL])
+        current_areas = self.config_entry.options.get(
+            CONF_AREAS, self.config_entry.data.get(CONF_AREAS, [AREA_ALL])
+        )
         current_interval = self.config_entry.options.get(
             CONF_SCAN_INTERVAL_MINUTES, DEFAULT_SCAN_INTERVAL_MINUTES
         )
@@ -223,6 +227,10 @@ class MetOfficeWarningsOptionsFlow(OptionsFlow):
                 ): vol.Coerce(int),
                 vol.Required(
                     CONF_MONITOR_ALL, default=AREA_ALL in current_areas
+                ): bool,
+                vol.Required(
+                    CONF_USE_HOME_LOCATION,
+                    default=self.config_entry.options.get(CONF_USE_HOME_LOCATION, False),
                 ): bool,
                 vol.Optional(
                     CONF_AREAS,
