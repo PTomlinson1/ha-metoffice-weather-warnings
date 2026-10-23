@@ -77,6 +77,7 @@ class MetOfficeWarningsCoordinator(DataUpdateCoordinator[WarningsData]):
         self._client = client
         self._areas = areas
         self._use_home_location = use_home_location
+        self.all_warnings: list[Warning] = []
 
     async def _async_update_data(self) -> WarningsData:
         try:
@@ -87,6 +88,8 @@ class MetOfficeWarningsCoordinator(DataUpdateCoordinator[WarningsData]):
             ) from err
         except NSWWSConnectionError as err:
             raise UpdateFailed(f"Error fetching NSWWS warnings: {err}") from err
+
+        self.all_warnings = all_warnings
 
         if self._use_home_location and valid_coordinates(
             self.hass.config.latitude, self.hass.config.longitude
