@@ -1,0 +1,61 @@
+"""Tests for optional home-coordinate warning filtering."""
+from unittest.mock import AsyncMock
+
+from custom_components.metoffice_warnings.const import AREA_ALL
+from custom_components.metoffice_warnings.coordinator import MetOfficeWarningsCoordinator
+from custom_components.metoffice_warnings.geometry import geometry_covers, valid_coordinates
+from custom_components.metoffice_warnings.models import warnings_from_geojson
+
+
+def _square(x1, y1, x2, y2):
+    return {"type": "Polygon", "coordinates": [[
+        [x1, y1], [x2, y1], [x2, y2], [x1, y2], [x1, y1],
+    ]]}
+
+
+def test_geometry_inside_outside_boundary_and_invalid():
+    geometry = _square(-2, 50, 0, 52)
+    assert geometry_covers(geometry, 51, -1) is True
+    assert geometry_covers(geometry, 51, 1) is False
+    assert geometry_covers(geometry, 50, -1) is True
+    assert geometry_covers(None, 51, -1) is None
+    assert not valid_coordinates(None, -1)
+
+
+def test_multipolygon_and_hole():
+    hole = [[-1.5, 50.5], [-0.5, 50.5], [-0.5, 51.5],
+            [-1.5, 51.5], [-1.5, 50.5]]
+    polygon = _square(-2, 50, 0, 52)["coordinates"] + [hole]
+    assert geometry_covers({"type": "Polygon", "coordinates": polygon}, 51, -1) is False
+    assert geometry_covers({"type": "MultiPolygon", "coordinates": [
+        _square(-5, 53, -4, 54)["coordinates"], _square(-2, 50, 0, 52)["coordinates"]
+    ]}, 51, -1) is True
+
+
+async def test_polygon_filter_overrides_regions(hass, issued_active):
+    warnings = warnings_from_geojson(issued_active)
+    for warning in warnings:
+        object.__setattr__(warning, "geometry", _square(-2, 50, 0, 52))
+    client = AsyncMock()
+    client.async_get_active_warnings.return_value = warnings
+    hass.config.latitude = 51
+    hass.config.longitude = -1
+    coordinator = MetOfficeWarningsCoordinator(
+        hass, client=client, areas=["Scotland"], use_home_location=True
+    )
+    result = await coordinator._async_update_data()
+    assert len(result.warnings) == len(warnings)
+    assert result.filter_method == "polygon"
+
+
+async def test_missing_geometry_uses_region_fallback(hass, issued_active):
+    client = AsyncMock()
+    client.async_get_active_warnings.return_value = warnings_from_geojson(issued_active)
+    hass.config.latitude = 51
+    hass.config.longitude = -1
+    coordinator = MetOfficeWarningsCoordinator(
+        hass, client=client, areas=[AREA_ALL], use_home_location=True
+    )
+    result = await coordinator._async_update_data()
+    assert len(result.warnings) == 2
+    assert result.filter_method == "polygon_with_region_fallback"
