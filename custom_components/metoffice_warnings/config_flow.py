@@ -230,7 +230,9 @@ class MetOfficeWarningsOptionsFlow(OptionsFlow):
                 ): bool,
                 vol.Required(
                     CONF_USE_HOME_LOCATION,
-                    default=self.config_entry.options.get(CONF_USE_HOME_LOCATION, False),
+                    default=self.config_entry.options.get(
+                        CONF_USE_HOME_LOCATION, False
+                    ),
                 ): bool,
                 vol.Optional(
                     CONF_AREAS,
