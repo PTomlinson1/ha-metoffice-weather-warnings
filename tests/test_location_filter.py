@@ -56,7 +56,10 @@ async def test_polygon_filter_overrides_regions(hass, issued_active):
 
 async def test_missing_geometry_uses_region_fallback(hass, issued_active):
     client = AsyncMock()
-    client.async_get_active_warnings.return_value = warnings_from_geojson(issued_active)
+    warnings = warnings_from_geojson(issued_active)
+    for warning in warnings:
+        object.__setattr__(warning, "geometry", None)
+    client.async_get_active_warnings.return_value = warnings
     hass.config.latitude = 51
     hass.config.longitude = -1
     coordinator = MetOfficeWarningsCoordinator(
