@@ -17,8 +17,8 @@ from .const import (
     WARNING_LEVEL_NONE,
     WARNING_LEVELS,
 )
-from .models import Warning
 from .geometry import geometry_covers, valid_coordinates
+from .models import Warning
 
 _LOGGER = logging.getLogger(__name__)
 
@@ -91,7 +91,8 @@ class MetOfficeWarningsCoordinator(DataUpdateCoordinator[WarningsData]):
         if self._use_home_location and valid_coordinates(
             self.hass.config.latitude, self.hass.config.longitude
         ):
-            latitude, longitude = self.hass.config.latitude, self.hass.config.longitude
+            latitude = self.hass.config.latitude
+            longitude = self.hass.config.longitude
             matched = []
             fallback_used = False
             for warning in all_warnings:
