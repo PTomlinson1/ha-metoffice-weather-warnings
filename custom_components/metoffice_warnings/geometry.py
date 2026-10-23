@@ -27,9 +27,9 @@ def _ring_contains(ring, x, y):
             raise ValueError("Invalid coordinate")
         pts.append((px, py))
     if pts[0] != pts[-1]:
-        raise ValueError("Unclosed ring") from None
+        raise ValueError("Unclosed ring")
     inside = False
-    for (ax, ay), (bx, by) in zip(pts, pts[1:]):
+    for (ax, ay), (bx, by) in zip(pts, pts[1:], strict=False):
         cross = (x - ax) * (by - ay) - (y - ay) * (bx - ax)
         if (
             abs(cross) <= 1e-10
