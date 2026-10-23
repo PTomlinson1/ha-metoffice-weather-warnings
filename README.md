@@ -91,13 +91,51 @@ Settings → Devices & Services → Add Integration → **Met Office Warnings**.
    setup completes immediately monitoring the whole UK; refine the area filter later
    from the integration's **Configure** options.
 
-Poll interval (default 10 minutes, minimum 5), region selection, and **Use Home\nlocation** can be changed afterwards via the integration's **Configure** options.\n\n### Optional Home location filtering\n\nEnable **Use Home location** to select warnings whose published GeoJSON polygons\ncover the latitude and longitude configured in Home Assistant (Settings → System →\nGeneral). This option is **off by default**, preserving the existing region-based\nbehaviour. It is useful near regional or warning boundaries, where selecting a broad\nregion may include warnings that do not actually cover your home.\n\n- With the option **off**, warnings match the selected regions as before.\n- With it **on**, warnings with usable Polygon or MultiPolygon geometry are\n  included only when the Home location is inside or on the warning boundary.\n  Polygon holes are respected.\n- If an individual warning has missing or unusable geometry, that warning falls\n  back to the selected region filter rather than disappearing silently.\n- If Home Assistant's Home coordinates are invalid or unavailable, filtering\n  falls back to the selected regions for all warnings.\n\nThe warning-level sensor exposes a `filter_method` attribute: `region`,\n`polygon`, `polygon_with_region_fallback`, or `region_fallback`. The existing\n`warnings` attribute contains only matched warnings; full polygon coordinates\nare deliberately **not** published as entity attributes.\n\n### Downloading diagnostics\n\nFor troubleshooting, open **Settings → Devices & Services → Met Office Warnings**,\nthen the integration's three-dot menu → **Download diagnostics**. The downloaded\nJSON includes the latest fetched warning polygons, **including excluded warnings**,\nand the `included`, `region_match`, and `polygon_match` decisions for each. This\nallows boundary issues to be investigated without adding large geometries to\nHome Assistant's recorder.\n\nThe API key is redacted and exact Home coordinates are not included. The\nexport can still contain detailed weather-warning geometry and configuration\ninformation, so review it before sharing publicly.
+Poll interval (default 10 minutes, minimum 5), region selection, and **Use Home
+location** can be changed afterwards via the integration's **Configure** options.
+
+### Optional Home location filtering
+
+Enable **Use Home location** to select warnings whose published GeoJSON polygons
+cover the latitude and longitude configured in Home Assistant (Settings → System →
+General). This option is **off by default**, preserving the existing region-based
+behaviour. It is useful near regional or warning boundaries, where selecting a broad
+region may include warnings that do not actually cover your home.
+
+- With the option **off**, warnings match the selected regions as before.
+- With it **on**, warnings with usable Polygon or MultiPolygon geometry are
+  included only when the Home location is inside or on the warning boundary.
+  Polygon holes are respected.
+- If an individual warning has missing or unusable geometry, that warning falls
+  back to the selected region filter rather than disappearing silently.
+- If Home Assistant's Home coordinates are invalid or unavailable, filtering
+  falls back to the selected regions for all warnings.
+
+The warning-level sensor exposes a `filter_method` attribute: `region`,
+`polygon`, `polygon_with_region_fallback`, or `region_fallback`. The existing
+`warnings` attribute contains only matched warnings; full polygon coordinates
+are deliberately **not** published as entity attributes.
+
+### Downloading diagnostics
+
+For troubleshooting, open **Settings → Devices & Services → Met Office Warnings**,
+then the integration's three-dot menu → **Download diagnostics**. The downloaded
+JSON includes the latest fetched warning polygons, **including excluded warnings**,
+and the `included`, `region_match`, and `polygon_match` decisions for each. This
+allows boundary issues to be investigated without adding large geometries to
+Home Assistant's recorder.
+
+The API key is redacted and exact Home coordinates are not included. The
+export can still contain detailed weather-warning geometry and configuration
+information, so review it before sharing publicly.
 
 ## How it works
 
 Each poll fetches the NSWWS `/objects/feed` Atom feed, follows its `rel="related"`
 link to discover the current warnings snapshot URL, then fetches that GeoJSON
-`FeatureCollection` — which already excludes expired/cancelled warnings.\nLocation filtering is applied to that snapshot locally; it does not require\nan additional Met Office API request. It does
+`FeatureCollection` — which already excludes expired/cancelled warnings.
+Location filtering is applied to that snapshot locally; it does not require
+an additional Met Office API request. It does
 **not** yet consume the feed's individual `<entry>` change events (issued/updated/
 cancelled) for faster, event-driven updates — that would mean tracking a feed cursor
 across restarts, which is a reasonable follow-up now that the snapshot-polling
