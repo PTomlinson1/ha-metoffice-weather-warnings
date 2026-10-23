@@ -141,3 +141,40 @@ async def test_location_filter_disabled_uses_regions(hass, issued_active):
     result = await coordinator._async_update_data()
     assert len(result.warnings) == len(warnings)
     assert result.filter_method == "region"
+
+
+async def test_diagnostics_exports_all_polygons_and_match_decisions(
+    hass, issued_active
+):
+    from types import SimpleNamespace
+
+    from custom_components.metoffice_warnings.diagnostics import (
+        async_get_config_entry_diagnostics,
+    )
+
+    warnings = warnings_from_geojson(issued_active)
+    object.__setattr__(warnings[0], "geometry", _square(-2, 50, 0, 52))
+    object.__setattr__(warnings[1], "geometry", _square(2, 50, 3, 52))
+    client = AsyncMock()
+    client.async_get_active_warnings.return_value = warnings
+    hass.config.latitude = 51
+    hass.config.longitude = -1
+    coordinator = MetOfficeWarningsCoordinator(
+        hass, client=client, areas=[AREA_ALL], use_home_location=True
+    )
+    coordinator.async_set_updated_data(await coordinator._async_update_data())
+    entry = SimpleNamespace(
+        data={"api_key": "secret", "areas": [AREA_ALL]},
+        options={"use_home_location": True},
+        runtime_data=coordinator,
+    )
+    result = await async_get_config_entry_diagnostics(hass, entry)
+    records = result["geometry_diagnostics"]["warnings"]
+    assert len(records) == 2
+    assert records[0]["included"] is True
+    assert records[0]["polygon_match"] is True
+    assert records[1]["included"] is False
+    assert records[1]["polygon_match"] is False
+    assert records[0]["geometry"]["type"] == "Polygon"
+    assert "secret" not in str(result)
+    assert "51," not in str(result)
