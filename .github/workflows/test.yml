@@ -1,4 +1,5 @@
 name: Test
+# Run regression tests on the location-filter development branch.
 
 on:
   push:
